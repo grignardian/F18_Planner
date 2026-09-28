@@ -12,10 +12,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Timetable">
-  <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 
   <!-- Fonts & Icons -->
   <link href="https://fonts.googleapis.com" rel="preconnect">
@@ -247,7 +245,7 @@
     <!-- ============ DAY SELECTION BAR ============ -->
     <div class="flex flex-col mb-5 animate-fade-in">
       <!-- Full-width 5-column grid for day buttons -->
-      <div class="grid grid-cols-5 gap-1.5 w-full" id="day-pill-filters">
+      <div class="grid grid-cols-6 gap-1 w-full" id="day-pill-filters">
         <!-- Generated JS day pills -->
       </div>
       
@@ -284,8 +282,8 @@
     let currentDay = '';
     let searchQuery = '';
 
-    const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-    const DAY_ABBR = ['MON', 'TUE', 'WED', 'THU', 'FRI'];
+    const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const DAY_ABBR = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
     const ALL_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
     function getActualDayName() {
@@ -319,7 +317,7 @@
       }
 
       const todayIndex = new Date().getDay();
-      if (todayIndex >= 1 && todayIndex <= 5) {
+      if (todayIndex >= 1 && todayIndex <= 6) {
         currentDay = DAYS[todayIndex - 1];
       } else {
         currentDay = 'Monday';
@@ -388,7 +386,7 @@
         const pillInactiveCls = 'bg-[var(--clr-pill-bg)] border border-[var(--clr-border)] text-[var(--clr-muted)] hover:text-[var(--clr-text)] hover:border-[var(--clr-accent)]/40';
 
         return `
-          <button onclick="switchDay('${day}')" class="flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl transition-all duration-200 w-full font-inter ${isSelected ? pillActiveCls : pillInactiveCls}">
+          <button onclick="switchDay('${day}')" class="flex flex-col items-center justify-center py-2 px-0.5 rounded-xl transition-all duration-200 w-full font-inter ${isSelected ? pillActiveCls : pillInactiveCls}">
             <span class="text-[10px] font-extrabold uppercase tracking-wider ${isSelected ? 'text-[var(--clr-pill-active-day)]' : 'text-[var(--clr-muted)]'}">${DAY_ABBR[i]}</span>
             <span class="text-sm font-bold mt-0.5 ${isSelected ? 'text-[var(--clr-pill-active-text)]' : 'text-[var(--clr-muted)]'}">${d.getDate()}</span>
           </button>
@@ -713,10 +711,22 @@
         const dy = e.changedTouches[0].clientY - startY;
         if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.4) {
           const idx = DAYS.indexOf(currentDay);
-          if (dx < 0 && idx < DAYS.length - 1) {
-            switchDay(DAYS[idx + 1], 'next');
-          } else if (dx > 0 && idx > 0) {
-            switchDay(DAYS[idx - 1], 'prev');
+          if (dx < 0) {
+            // Swiping left (forward in time)
+            if (idx < DAYS.length - 1) {
+              switchDay(DAYS[idx + 1], 'next');
+            } else if (idx === DAYS.length - 1) {
+              // Wrap from Saturday back to Monday
+              switchDay(DAYS[0], 'next');
+            }
+          } else if (dx > 0) {
+            // Swiping right (backward in time)
+            if (idx > 0) {
+              switchDay(DAYS[idx - 1], 'prev');
+            } else if (idx === 0) {
+              // Wrap from Monday back to Saturday
+              switchDay(DAYS[DAYS.length - 1], 'prev');
+            }
           }
         }
       }, { passive: true });
